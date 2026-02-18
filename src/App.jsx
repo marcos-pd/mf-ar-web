@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import {
   BarChart3,
@@ -144,51 +145,37 @@ const App = () => {
     setError('');
     setAiResult('');
 
-    // --- CONFIGURACIÓN API KEY (Híbrido Preview/Local) ---
-    // PASO 4: Descomenta la línea de 'import.meta...' en tu local.
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    // const apiKey = ""; 
-    
-    const prompt = `Actúa como un Consultor de Ciencia de Datos Senior de la empresa mf.ar. 
-    Un cliente potencial de la industria "${industry}" tiene este problema: "${problem}".
-    
-    Genera una breve estrategia de datos de 3 puntos para resolverlo. Usa este formato exacto (sin markdown complejo):
-    
-    1. Fuente de Datos: [Qué datos scrapear o recolectar]
-    2. Transformación: [Cómo limpiar o estructurar esos datos]
-    3. Valor de Negocio: [Qué decisión podrá tomar el cliente]
-    
-    Mantén un tono profesional, técnico pero accesible.`;
-
-    console.log("Intentando conectar con API Key:", apiKey ? "OK (Existe)" : "ERROR (Vacía)"); // Debug
-    
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
+      // 1. Obtener API Key del entorno
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-      if (!response.ok) throw new Error('Error al conectar con el servicio de IA');
+      // 2. Inicializar el SDK de Google (Aquí ocurre la magia)
+      const genAI = new GoogleGenerativeAI(apiKey);
+      
+      // 3. Seleccionar el modelo (El SDK maneja la URL correcta automáticamente)
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const prompt = `Actúa como un Consultor de Ciencia de Datos Senior de la empresa mf.ar. 
+      Un cliente potencial de la industria "${industry}" tiene este problema: "${problem}".
+      
+      Genera una breve estrategia de datos de 3 puntos para resolverlo. Usa este formato exacto (sin markdown complejo):
+      
+      1. Fuente de Datos: [Qué datos scrapear o recolectar]
+      2. Transformación: [Cómo limpiar o estructurar esos datos]
+      3. Valor de Negocio: [Qué decisión podrá tomar el cliente]
+      
+      Mantén un tono profesional, técnico pero accesible.`;
 
-      if (text) {
-        setAiResult(text);
-      } else {
-        throw new Error('No se pudo generar la estrategia.');
-      }
+      // 4. Generar contenido usando el SDK
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      setAiResult(text);
+
     } catch (err) {
-      setError('Hubo un error generando tu estrategia. Por favor verifica tu conexión o intenta de nuevo.');
-      console.error(err);
+      console.error("Error SDK Gemini:", err);
+      setError(`Error generando estrategia: ${err.message || 'Verifica tu conexión'}`);
     } finally {
       setIsLoading(false);
     }
