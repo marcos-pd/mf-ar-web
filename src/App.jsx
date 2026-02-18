@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import emailjs from '@emailjs/browser';
 
 import {
   BarChart3,
@@ -41,6 +42,30 @@ const App = () => {
 
   // Estado para el Modal de Servicios
   const [selectedService, setSelectedService] = useState(null);
+
+  // Estados par el formulario de contacto
+  const formRef = useRef();
+  const [contactStatus, setContactStatus] = useState('idle'); // idle, sending, success, error
+
+  const sendEmail = (e) => {
+    e.preventDefault();
+    setContactStatus('sending');
+
+    emailjs.sendForm(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+      formRef.current,
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+    )
+    .then((result) => {
+        setContactStatus('success');
+        e.target.reset(); // Limpia el formulario
+        setTimeout(() => setContactStatus('idle'), 5000); // Vuelve al estado normal después de 5s
+    }, (error) => {
+        console.error(error.text);
+        setContactStatus('error');
+    });
+  };
 
   // --- CONFIGURACIÓN DE IMÁGENES (Híbrido Preview/Local) ---
   
@@ -619,22 +644,63 @@ const App = () => {
             {/* Right Column: Form */}
             <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
               <h3 className="text-xl font-medium text-gray-900 mb-6">Envíame un mensaje</h3>
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <form ref={formRef} onSubmit={sendEmail} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" placeholder="Juan Pérez" />
+                  <input 
+                    type="text" 
+                    name="user_name" // Importante: debe coincidir con tu template de EmailJS
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
+                    placeholder="Juan Pérez" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email Corporativo</label>
-                  <input type="email" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" placeholder="juan@empresa.com" />
+                  <input 
+                    type="email" 
+                    name="user_email" // Importante: debe coincidir con tu template de EmailJS
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
+                    placeholder="juan@empresa.com" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">¿Cuál es tu principal desafío?</label>
-                  <textarea rows="4" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" placeholder="Describe brevemente qué datos necesitas o qué problema quieres resolver..."></textarea>
+                  <textarea 
+                    name="message" // Importante: debe coincidir con tu template de EmailJS
+                    rows="4" 
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
+                    placeholder="Describe brevemente qué datos necesitas o qué problema quieres resolver..."
+                  ></textarea>
                 </div>
-                <button className="w-full bg-blue-600 text-white font-medium py-3.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex justify-center items-center gap-2">
-                  Enviar consulta <ArrowRight size={18} />
+
+                <button 
+                  type="submit"
+                  disabled={contactStatus === 'sending' || contactStatus === 'success'}
+                  className={`w-full font-medium py-3.5 rounded-lg transition-colors shadow-sm flex justify-center items-center gap-2
+                    ${contactStatus === 'success' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}
+                    ${contactStatus === 'sending' ? 'opacity-70 cursor-wait' : ''}
+                  `}
+                >
+                  {contactStatus === 'sending' ? (
+                    <>Enviando... <Loader2 className="animate-spin" size={20} /></>
+                  ) : contactStatus === 'success' ? (
+                    <>¡Mensaje Enviado! <CheckCircle2 size={20} /></>
+                  ) : contactStatus === 'error' ? (
+                    <>Error al enviar. Intenta de nuevo.</>
+                  ) : (
+                    <>Enviar consulta <ArrowRight size={18} /></>
+                  )}
                 </button>
+                
+                {/* Mensaje de éxito/error debajo del botón */}
+                {contactStatus === 'success' && (
+                  <p className="text-center text-sm text-green-600 mt-2 animate-in fade-in">
+                    Gracias por contactarnos. Te responderemos a la brevedad.
+                  </p>
+                )}
               </form>
               <p className="mt-6 text-xs text-center text-gray-400">
                 Consultoría directa. Respuesta garantizada en 24hs.
