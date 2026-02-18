@@ -160,9 +160,11 @@ const App = () => {
     
     Mantén un tono profesional, técnico pero accesible.`;
 
+    console.log("Intentando conectar con API Key:", apiKey ? "OK (Existe)" : "ERROR (Vacía)"); // Debug
+    
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: {
