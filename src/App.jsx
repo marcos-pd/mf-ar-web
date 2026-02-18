@@ -153,7 +153,7 @@ const App = () => {
       const genAI = new GoogleGenerativeAI(apiKey);
       
       // 3. Seleccionar el modelo (El SDK maneja la URL correcta automáticamente)
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const prompt = `Actúa como un Consultor de Ciencia de Datos Senior de la empresa mf.ar. 
       Un cliente potencial de la industria "${industry}" tiene este problema: "${problem}".
