@@ -28,7 +28,7 @@ import {
 // PASO 1: Descomenta las siguientes líneas cuando lo uses en tu computadora:
 import dashboardImg from './assets/dashboard.png';
 import logoImg from './logo_mfar.jpg';
-import faviconImg from './favicon_mf.png'; // <-- Asegúrate de tener este archivo en /src
+// import faviconImg from './favicon_mf.png'; // <-- Asegúrate de tener este archivo en /src
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -71,25 +71,25 @@ const App = () => {
   
   // 1. FAVICON:
   // Para usar tu favicon local, DESCOMENTA la siguiente línea y COMENTA la URL de abajo:
-  const faviconSource = faviconImg; 
+  // const faviconSource = faviconImg; 
   // const faviconSource = "https://cdn-icons-png.flaticon.com/512/1006/1006185.png"; // Icono temporal para demo
 
   // Efecto para actualizar el Favicon y el Título dinámicamente
-  useEffect(() => {
+  //. useEffect(() => {
     // A. Cambiar el Título de la pestaña
     document.title = "mf.ar | Data Science & Analytics";
 
     // B. Cambiar el Favicon (Busca iconos existentes y actualiza)
-    const updateFavicon = () => {
-      const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-      link.type = 'image/png';
-      link.rel = 'shortcut icon';
-      link.href = faviconSource;
-      document.getElementsByTagName('head')[0].appendChild(link);
-    };
+    // const updateFavicon = () => {
+      // const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+      // link.type = 'image/png';
+      // link.rel = 'shortcut icon';
+      // link.href = faviconSource;
+      // document.getElementsByTagName('head')[0].appendChild(link);
+    // };
     
-    updateFavicon();
-  }, [faviconSource]); // Se actualiza si cambia la fuente
+    // updateFavicon();
+  // }, [faviconSource]); // Se actualiza si cambia la fuente
 
   // 2. LOGO:
   const LogoComponent = () => (
