@@ -166,6 +166,17 @@ const App = () => {
     e.preventDefault();
     if (!industry || !problem) return;
 
+    // --- MEDIR EVENTO DE ANALYTICS ---
+    // Si la etiqueta de GA4 está cargada correctamente
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'virtual_consultant_use', {
+        'event_category': 'Engagement',
+        'event_label': 'Generar Estrategia IA',
+        'client_industry': industry // Opcional: enviamos la industria para analizar qué rubros lo usan más
+      });
+    }
+    // ----------------------------------
+
     setIsLoading(true);
     setError('');
     setAiResult('');
