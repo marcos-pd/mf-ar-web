@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import emailjs from '@emailjs/browser';
 
 import {
@@ -26,8 +26,8 @@ import {
 
 // --- SECCIÓN DE CONFIGURACIÓN PARA LOCALHOST ---
 // PASO 1: Descomenta las siguientes líneas cuando lo uses en tu computadora:
-import dashboardImg from './assets/dashboard.png';
-import logoImg from './logo_mfar.jpg';
+// import dashboardImg from './assets/dashboard.png';
+// import logoImg from './logo_mfar.jpg';
 // import faviconImg from './favicon_mf.png'; // <-- Asegúrate de tener este archivo en /src
 
 const App = () => {
@@ -72,24 +72,7 @@ const App = () => {
   // 1. FAVICON:
   // Para usar tu favicon local, DESCOMENTA la siguiente línea y COMENTA la URL de abajo:
   // const faviconSource = faviconImg; 
-  // const faviconSource = "https://cdn-icons-png.flaticon.com/512/1006/1006185.png"; // Icono temporal para demo
-
-  // Efecto para actualizar el Favicon y el Título dinámicamente
-  //. useEffect(() => {
-    // A. Cambiar el Título de la pestaña
-    document.title = "mf.ar | Data Science & Analytics";
-
-    // B. Cambiar el Favicon (Busca iconos existentes y actualiza)
-    // const updateFavicon = () => {
-      // const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-      // link.type = 'image/png';
-      // link.rel = 'shortcut icon';
-      // link.href = faviconSource;
-      // document.getElementsByTagName('head')[0].appendChild(link);
-    // };
-    
-    // updateFavicon();
-  // }, [faviconSource]); // Se actualiza si cambia la fuente
+  const faviconSource = "https://cdn-icons-png.flaticon.com/512/1006/1006185.png"; // Icono temporal para demo
 
   // 2. LOGO:
   const LogoComponent = () => (
@@ -166,51 +149,41 @@ const App = () => {
     e.preventDefault();
     if (!industry || !problem) return;
 
-    // --- MEDIR EVENTO DE ANALYTICS ---
-    // Si la etiqueta de GA4 está cargada correctamente
     if (typeof window.gtag !== 'undefined') {
       window.gtag('event', 'virtual_consultant_use', {
         'event_category': 'Engagement',
         'event_label': 'Generar Estrategia IA',
-        'client_industry': industry // Opcional: enviamos la industria para analizar qué rubros lo usan más
+        'client_industry': industry 
       });
     }
-    // ----------------------------------
 
     setIsLoading(true);
     setError('');
     setAiResult('');
 
     try {
-      // 1. Obtener API Key del entorno
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      // Llamada segura a la función de servidor en Cloudflare
+      const respuesta = await fetch('/api/generar-estrategia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Se unifica industria y problema para mantener compatibilidad con la función backend
+        body: JSON.stringify({ problema: `Industria: ${industry}. Problema: ${problem}` }),
+      });
 
-      // 2. Inicializar el SDK de Google (Aquí ocurre la magia)
-      const genAI = new GoogleGenerativeAI(apiKey);
-      
-      // 3. Seleccionar el modelo (El SDK maneja la URL correcta automáticamente)
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const data = await respuesta.json();
 
-      const prompt = `Actúa como un Consultor de Ciencia de Datos Senior de la empresa mf.ar. 
-      Un cliente potencial de la industria "${industry}" tiene este problema: "${problem}".
-      
-      Genera una breve estrategia de datos de 3 puntos para resolverlo. Usa este formato exacto (sin markdown complejo):
-      
-      1. Fuente de Datos: [Qué datos scrapear o recolectar]
-      2. Transformación: [Cómo limpiar o estructurar esos datos]
-      3. Valor de Negocio: [Qué decisión podrá tomar el cliente]
-      
-      Mantén un tono profesional, técnico pero accesible.`;
+      if (!respuesta.ok || data.error) {
+        throw new Error(data.error || 'Error en el servidor');
+      }
 
-      // 4. Generar contenido usando el SDK
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
-      setAiResult(text);
+      // Estructura de respuesta de la API REST nativa de Gemini
+      const textoGenerado = data.candidates[0].content.parts[0].text;
+      setAiResult(textoGenerado);
 
     } catch (err) {
-      console.error("Error SDK Gemini:", err);
+      console.error("Error al consultar la función:", err);
       setError(`Error generando estrategia: ${err.message || 'Verifica tu conexión'}`);
     } finally {
       setIsLoading(false);
