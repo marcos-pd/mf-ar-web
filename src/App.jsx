@@ -163,7 +163,7 @@ const App = () => {
 
     try {
       // Llamada segura a la función de servidor en Cloudflare
-      const respuesta = await fetch('/api/generar-estrategia', {
+      const respuesta = await fetch('/generar-estrategia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
