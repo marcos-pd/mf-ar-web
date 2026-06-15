@@ -162,23 +162,23 @@ const App = () => {
     setAiResult('');
 
     try {
-      // Llamada segura a la función de servidor en Cloudflare
+      // Enviamos industria y problema por separado
       const respuesta = await fetch('/generar-estrategia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Se unifica industria y problema para mantener compatibilidad con la función backend
-        body: JSON.stringify({ problema: `Industria: ${industry}. Problema: ${problem}` }),
+        body: JSON.stringify({ industry, problem }),
       });
 
       const data = await respuesta.json();
 
+      // Si la respuesta no es exitosa o Google devuelve un bloque de error
       if (!respuesta.ok || data.error) {
-        throw new Error(data.error || 'Error en el servidor');
+        const mensajeError = data.error?.message || 'Error inesperado en el servidor';
+        throw new Error(mensajeError);
       }
 
-      // Estructura de respuesta de la API REST nativa de Gemini
       const textoGenerado = data.candidates[0].content.parts[0].text;
       setAiResult(textoGenerado);
 
