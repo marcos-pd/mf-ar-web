@@ -28,7 +28,7 @@ import {
 // PASO 1: Descomenta las siguientes líneas cuando lo uses en tu computadora:
 import dashboardImg from './assets/dashboard.png';
 import logoImg from './logo_mfar.jpg';
-import faviconImg from './favicon_mf.png'; // <-- Asegúrate de tener este archivo en /src
+
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,6 +64,7 @@ const App = () => {
     }, (error) => {
         console.error(error.text);
         setContactStatus('error');
+        setTimeout(() => setContactStatus('idle'), 5000);
     });
   };
 
@@ -280,7 +281,7 @@ const App = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600 p-2">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'} className="text-gray-600 p-2">
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
