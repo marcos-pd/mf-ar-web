@@ -77,13 +77,9 @@ const App = () => {
   };
 
   // --- CONFIGURACIÓN DE IMÁGENES (Híbrido Preview/Local) ---
-  
-  // 1. FAVICON:
-  // Para usar tu favicon local, DESCOMENTA la siguiente línea y COMENTA la URL de abajo:
-  // const faviconSource = faviconImg; 
-  const faviconSource = "https://cdn-icons-png.flaticon.com/512/1006/1006185.png"; // Icono temporal para demo
+  // El favicon se define en index.html (/favicon_mf.png)
 
-  // 2. LOGO:
+  // LOGO:
   const LogoComponent = () => (
     // En local descomenta la siguiente línea:
     <img src={logoImg} alt="mf.ar Logo" className="h-12 w-auto object-contain hover:opacity-90 transition-opacity" />
