@@ -77,7 +77,7 @@ const App = () => {
   };
 
   // --- CONFIGURACIÓN DE IMÁGENES (Híbrido Preview/Local) ---
-  // El favicon se define en index.html (/favicon_mf.png)
+  // El favicon se define en index.html (/favicon.ico y variantes PNG)
 
   // LOGO:
   const LogoComponent = () => (
