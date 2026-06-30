@@ -35,7 +35,7 @@ import {
 // --- SECCIÓN DE CONFIGURACIÓN PARA LOCALHOST ---
 // PASO 1: Descomenta las siguientes líneas cuando lo uses en tu computadora:
 import dashboardImg from './assets/dashboard.png';
-import logoImg from './logo_mfar.jpg';
+import logoImg from './logo_mfar.png';
 
 
 const App = () => {
