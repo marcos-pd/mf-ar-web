@@ -21,7 +21,15 @@ import {
   Mail,
   Linkedin,
   User,
-  Activity
+  Activity,
+  Target,
+  ShieldCheck,
+  Tags,
+  Eye,
+  LayoutDashboard,
+  Cpu,
+  ClipboardCheck,
+  Gauge
 } from 'lucide-react';
 
 // --- SECCIÓN DE CONFIGURACIÓN PARA LOCALHOST ---
@@ -270,6 +278,9 @@ const App = () => {
             {/* Desktop Menu */}
             <div className="hidden md:flex space-x-8 items-center">
               <a href="#servicios" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Servicios</a>
+              <a href="#market-hub" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-1">
+                <Target size={14} className="text-blue-500" /> Market Hub
+              </a>
               <a href="#demo-ia" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-1">
                 <Sparkles size={14} className="text-blue-500" /> Demo IA
               </a>
@@ -292,6 +303,9 @@ const App = () => {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-gray-100 absolute w-full px-4 py-4 flex flex-col space-y-4 shadow-lg animate-in slide-in-from-top-5">
             <a href="#servicios" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Servicios</a>
+            <a href="#market-hub" className="text-gray-600 font-medium flex items-center gap-2 py-2" onClick={() => setIsMenuOpen(false)}>
+              <Target size={16} className="text-blue-500" /> Market Hub
+            </a>
             <a href="#demo-ia" className="text-gray-600 font-medium flex items-center gap-2 py-2" onClick={() => setIsMenuOpen(false)}>
               <Sparkles size={16} className="text-blue-500" /> Demo IA
             </a>
@@ -486,6 +500,175 @@ const App = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* MARKET INTELLIGENCE HUB SECTION */}
+      <section id="market-hub" className="py-24 bg-gray-900 text-white relative overflow-hidden">
+        {/* Glow decorativo */}
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 w-[40rem] h-[40rem] bg-blue-600 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-[40rem] h-[40rem] bg-indigo-600 rounded-full mix-blend-screen filter blur-3xl opacity-10"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+          {/* Encabezado del producto */}
+          <div className="max-w-3xl mx-auto text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 text-xs font-semibold uppercase tracking-wider border border-blue-500/20">
+              <Target size={14} />
+              Nuevo Producto
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-medium tracking-tight text-white mt-6 leading-[1.1]">
+              Market Intelligence Hub
+            </h2>
+            <p className="text-xl text-gray-300 mt-6 leading-relaxed">
+              Descubre dónde está parada tu marca y cómo vende realmente tu competencia.
+            </p>
+            <p className="text-lg text-gray-400 mt-4 leading-relaxed">
+              Elimina las suposiciones. Combinamos analítica predictiva, extracción de datos masivos e Inteligencia Artificial para auditar tu posicionamiento de mercado y diseñar tu estrategia de precios óptima.
+            </p>
+          </div>
+
+          {/* 1. Problema / Solución */}
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-24">
+            {/* El Desafío */}
+            <div className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+              <h3 className="text-xl font-medium text-white mb-4 flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Eye className="w-5 h-5 text-red-400" />
+                </span>
+                El Desafío
+              </h3>
+              <p className="text-gray-400 leading-relaxed">
+                Tomar decisiones comerciales basándose únicamente en reportes internos, intuiciones del equipo o precios de lista públicos es un riesgo alto. En mercados dinámicos, la competencia no solo publica precios: ejecuta descuentos informales, enfrenta crisis de reputación invisibles en la postventa y absorbe mercado de manera silenciosa.
+              </p>
+            </div>
+
+            {/* La Solución */}
+            <div className="bg-blue-600 p-8 rounded-2xl border border-blue-500 shadow-xl shadow-blue-900/40">
+              <h3 className="text-xl font-medium text-white mb-4 flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                </span>
+                La Solución
+              </h3>
+              <p className="text-blue-50 leading-relaxed">
+                Centralizamos la información dispersa en la web para darte una ventaja táctica. No te entregamos un mar de datos; te damos la claridad que necesitas para justificar tu próximo movimiento ante el directorio, optimizar márgenes y blindar tu estrategia comercial.
+              </p>
+            </div>
+          </div>
+
+          {/* 2. Los Dos Pilares Estratégicos */}
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h3 className="text-3xl font-medium text-white">Dos pilares estratégicos</h3>
+            <p className="text-gray-400 text-lg mt-3">
+              Transformamos la complejidad técnica en dos soluciones de negocio concretas.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-24">
+            {/* Pilar 1 */}
+            <div className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10 hover:border-white/20 transition-colors flex flex-col">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6">
+                <Gauge className="w-6 h-6 text-purple-400" />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-purple-300 mb-2">Pilar 1</span>
+              <h4 className="text-2xl font-medium text-white mb-3">Auditoría de Percepción y Salud de Marca</h4>
+              <p className="text-gray-400 leading-relaxed mb-6">
+                Entiende qué atributos asocia el mercado a tus productos en comparación con tus competidores directos.
+              </p>
+              <div className="space-y-5 mt-auto">
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Qué resolvemos</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">Identificamos los "momentos de la verdad", como la experiencia real en la red de distribución o la postventa.</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Cómo te ayuda</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">Sabrás con precisión matemática si tu marca se asocia a "innovación", "fidelidad" o si arrastra fricciones críticas (por ejemplo, disconformidad con los planes de financiación o falta de stock).</p>
+                </div>
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-sm font-semibold text-blue-300 mb-1 flex items-center gap-2">
+                    <CheckCircle2 size={16} /> El resultado
+                  </p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Argumentos sólidos para corregir la comunicación de marketing, mejorar la retención de clientes y liderar el mercado.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pilar 2 */}
+            <div className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10 hover:border-white/20 transition-colors flex flex-col">
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-6">
+                <Tags className="w-6 h-6 text-green-400" />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-green-300 mb-2">Pilar 2</span>
+              <h4 className="text-2xl font-medium text-white mb-3">Arquitectura y Posicionamiento de Precios</h4>
+              <p className="text-gray-400 leading-relaxed mb-6">
+                El precio de lista es solo una declaración de intenciones. Analizamos la brecha real entre el precio publicado y el precio de transacción (Price Ladder Real).
+              </p>
+              <div className="space-y-5 mt-auto">
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Qué resolvemos</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">Mapeamos de extremo a extremo la escalera de precios de tu industria y detectamos promociones agresivas o descuentos informales que pueden distorsionar el mercado.</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Cómo te ayuda</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">Gestiona tus políticas de promociones con datos reales, define el posicionamiento óptimo para el lanzamiento de nuevos productos y encuentra "huecos" de rentabilidad desatendidos por la competencia.</p>
+                </div>
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-sm font-semibold text-blue-300 mb-1 flex items-center gap-2">
+                    <CheckCircle2 size={16} /> El resultado
+                  </p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Certeza absoluta para defender el valor de tu producto, maximizar el margen operativo y evitar perder competitividad por subestimar las tácticas del rival.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. ¿Qué estás adquiriendo? */}
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h3 className="text-3xl font-medium text-white">¿Qué estás adquiriendo?</h3>
+            <p className="text-gray-400 text-lg mt-3">
+              Un proyecto cerrado, llave en mano. Nos encargamos de todo el proceso de punta a punta: desde el desarrollo técnico de extracción de datos hasta los operativos de mystery shopping si el canal lo requiere.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                icon: <ClipboardCheck className="w-6 h-6 text-blue-400" />,
+                title: "Auditoría de Mercado inicial",
+                desc: "Un diagnóstico profundo y asertivo con conclusiones de negocio listas para presentar ante la dirección."
+              },
+              {
+                icon: <LayoutDashboard className="w-6 h-6 text-blue-400" />,
+                title: "Tablero de Comando",
+                desc: "Un entorno limpio y visual para monitorear el comportamiento de tus competidores, la evolución de los precios de transacción y el termómetro de opinión de los usuarios."
+              },
+              {
+                icon: <Cpu className="w-6 h-6 text-blue-400" />,
+                title: "Escalabilidad Asegurada",
+                desc: "Arquitectura AI-First: la ingesta y clasificación de datos se procesa con modelos avanzados de IA, transformando el diagnóstico inicial en un monitoreo continuo y automatizado."
+              }
+            ].map((item, i) => (
+              <div key={i} className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6">
+                  {item.icon}
+                </div>
+                <h4 className="text-lg font-medium text-white mb-3">{item.title}</h4>
+                <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <a
+              href="#contacto"
+              className="inline-flex justify-center items-center px-8 py-3.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 gap-2"
+            >
+              Solicitar una auditoría de mercado <ArrowRight size={18} />
+            </a>
+          </div>
+
         </div>
       </section>
 
