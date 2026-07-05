@@ -58,6 +58,16 @@ const App = () => {
   const sendEmail = (e) => {
     e.preventDefault();
 
+    // Honeypot anti-spam: un bot suele completar todos los campos, incluido este
+    // que está oculto para humanos. Si viene lleno, simulamos éxito sin enviar.
+    const honeypot = formRef.current?.elements?.company_website?.value;
+    if (honeypot) {
+      setContactStatus('success');
+      e.target.reset();
+      setTimeout(() => setContactStatus('idle'), 5000);
+      return;
+    }
+
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
@@ -821,6 +831,18 @@ const App = () => {
             <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
               <h3 className="text-xl font-medium text-gray-900 mb-6">Envíame un mensaje</h3>
               <form ref={formRef} onSubmit={sendEmail} className="space-y-6">
+                {/* Honeypot anti-spam: oculto para humanos, invisible en la UI. No lo completes. */}
+                <div className="absolute left-[-9999px] top-[-9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                  <label>
+                    No completar este campo
+                    <input
+                      type="text"
+                      name="company_website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </label>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
                   <input 
