@@ -57,23 +57,35 @@ const App = () => {
 
   const sendEmail = (e) => {
     e.preventDefault();
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    // Sin credenciales, EmailJS rechaza sin llegar a la red. Fallamos con un mensaje claro.
+    if (!serviceId || !templateId || !publicKey) {
+      console.error(
+        'EmailJS: faltan variables de entorno VITE_EMAILJS_* en el build. ' +
+        'Configúralas en Cloudflare Pages (Production y Preview) y vuelve a desplegar.'
+      );
+      setContactStatus('error');
+      setTimeout(() => setContactStatus('idle'), 5000);
+      return;
+    }
+
     setContactStatus('sending');
 
-    emailjs.sendForm(
-      import.meta.env.VITE_EMAILJS_SERVICE_ID,
-      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-      formRef.current,
-      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-    )
-    .then((result) => {
+    emailjs.sendForm(serviceId, templateId, formRef.current, { publicKey })
+      .then(() => {
         setContactStatus('success');
         e.target.reset(); // Limpia el formulario
         setTimeout(() => setContactStatus('idle'), 5000); // Vuelve al estado normal después de 5s
-    }, (error) => {
-        console.error(error.text);
+      })
+      .catch((error) => {
+        console.error('EmailJS error:', error?.status, error?.text || error);
         setContactStatus('error');
         setTimeout(() => setContactStatus('idle'), 5000);
-    });
+      });
   };
 
   // --- CONFIGURACIÓN DE IMÁGENES (Híbrido Preview/Local) ---
