@@ -29,17 +29,48 @@ import {
   LayoutDashboard,
   Cpu,
   ClipboardCheck,
-  Gauge
+  Gauge,
+  Globe
 } from 'lucide-react';
+
+import { translations, DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from './i18n/translations';
 
 // --- SECCIÓN DE CONFIGURACIÓN PARA LOCALHOST ---
 // PASO 1: Descomenta las siguientes líneas cuando lo uses en tu computadora:
 import dashboardImg from './assets/dashboard.png';
 import logoImg from './logo_mfar.png';
 
+// Íconos y estilos por servicio (no traducidos, van por índice junto al contenido de i18n)
+const SERVICE_VISUALS = [
+  { icon: <Search className="w-6 h-6 text-blue-600" />, colorClass: 'text-blue-600', bgClass: 'bg-blue-50' },
+  { icon: <Layers className="w-6 h-6 text-green-600" />, colorClass: 'text-green-600', bgClass: 'bg-green-50' },
+  { icon: <BarChart3 className="w-6 h-6 text-yellow-600" />, colorClass: 'text-yellow-600', bgClass: 'bg-yellow-50' },
+];
+
+const DELIVERABLE_ICONS = [
+  <ClipboardCheck className="w-6 h-6 text-blue-400" />,
+  <LayoutDashboard className="w-6 h-6 text-blue-400" />,
+  <Cpu className="w-6 h-6 text-blue-400" />,
+];
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Idioma del sitio: español por defecto, seleccionable manualmente y persistido
+  const [language, setLanguage] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return stored === 'en' || stored === 'es' ? stored : DEFAULT_LANGUAGE;
+  });
+  const t = translations[language];
+
+  useEffect(() => {
+    document.documentElement.lang = t.meta.htmlLang;
+    document.title = t.meta.title;
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  }, [language, t]);
+
+  const toggleLanguage = () => setLanguage((prev) => (prev === 'es' ? 'en' : 'es'));
 
   // Estados para la integración con Gemini
   const [industry, setIndustry] = useState('');
@@ -120,57 +151,8 @@ const App = () => {
   const dashboardSource = dashboardImg;
   // const dashboardSource = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000";
 
-  // DATOS DE SERVICIOS EXPANDIDOS
-  const services = [
-    {
-      id: 'scraping',
-      icon: <Search className="w-6 h-6 text-blue-600" />,
-      colorClass: "text-blue-600",
-      bgClass: "bg-blue-50",
-      title: "Data Scraping & Ingesta",
-      description: "Recolección automatizada de datos desde la web, APIs o archivos heredados. Convertimos información dispersa en bases de datos estructuradas.",
-      fullDescription: "Transformamos internet y tus archivos aislados en una fuente de datos estructurada. Ya sea monitorear precios de la competencia en tiempo real, consolidar reportes de múltiples sucursales o migrar datos de sistemas antiguos (Legacy) que no tienen API.",
-      features: [
-        "Web Scraping de sitios dinámicos (Selenium, Puppeteer) y estáticos.",
-        "Desarrollo de conectores para APIs públicas y privadas.",
-        "Procesamiento de archivos complejos (PDFs, Excels masivos, Logs).",
-        "Automatización de procesos de carga (ETL Pipelines)."
-      ],
-      techStack: "Python, Scrapy, Selenium, Pandas, SQL"
-    },
-    {
-      id: 'cleaning',
-      icon: <Layers className="w-6 h-6 text-green-600" />,
-      colorClass: "text-green-600",
-      bgClass: "bg-green-50",
-      title: "Limpieza y Estructuración",
-      description: "Tus datos actuales pueden estar desordenados. Los normalizamos, limpiamos y organizamos para que sean realmente utilizables.",
-      fullDescription: "El 80% del trabajo de datos es la limpieza. Nos encargamos de que tu información sea confiable. Eliminamos duplicados, corregimos errores de formato manual, estandarizamos categorías y cruzamos fuentes dispares para crear una 'única fuente de verdad'.",
-      features: [
-        "Detección y corrección de anomalías y outliers.",
-        "Normalización de formatos (Fechas, Monedas, Direcciones).",
-        "Desduplicación de registros de clientes o productos.",
-        "Modelado de datos para Data Warehousing (Star Schema)."
-      ],
-      techStack: "SQL, DBT, Pandas, Great Expectations"
-    },
-    {
-      id: 'analytics',
-      icon: <BarChart3 className="w-6 h-6 text-yellow-600" />,
-      colorClass: "text-yellow-600",
-      bgClass: "bg-yellow-50",
-      title: "Analítica y Reporting",
-      description: "Dashboards interactivos y reportes automatizados. Deja de perder tiempo en Excel y empieza a tomar decisiones basadas en evidencia.",
-      fullDescription: "Convertimos los datos limpios en historias visuales. Diseñamos tableros de control que se actualizan solos, permitiéndote ver la salud de tu negocio en un vistazo, detectar tendencias antes que nadie y automatizar esos reportes mensuales que te quitan horas.",
-      features: [
-        "Diseño de Dashboards interactivos y KPIs en tiempo real.",
-        "Reportes automatizados por email o Slack.",
-        "Análisis predictivo básico (Forecasting).",
-        "Auditoría de datos para toma de decisiones."
-      ],
-      techStack: "PowerBI, Looker Studio, Streamlit, Tableau"
-    }
-  ];
+  // Servicios: contenido traducido (t.services.items) + ícono/color por índice
+  const services = t.services.items.map((item, i) => ({ ...item, ...SERVICE_VISUALS[i] }));
 
   const generateDataStrategy = async (e) => {
     e.preventDefault();
@@ -180,7 +162,7 @@ const App = () => {
       window.gtag('event', 'virtual_consultant_use', {
         'event_category': 'Engagement',
         'event_label': 'Generar Estrategia IA',
-        'client_industry': industry 
+        'client_industry': industry
       });
     }
 
@@ -189,20 +171,19 @@ const App = () => {
     setAiResult('');
 
     try {
-      // Enviamos industria y problema por separado
       const respuesta = await fetch('/generar-estrategia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ industry, problem }),
+        body: JSON.stringify({ industry, problem, language }),
       });
 
       const data = await respuesta.json();
 
       // Si la respuesta no es exitosa o Google devuelve un bloque de error
       if (!respuesta.ok || data.error) {
-        const mensajeError = data.error?.message || 'Error inesperado en el servidor';
+        const mensajeError = data.error?.message || t.aiDemo.genericServerError;
         throw new Error(mensajeError);
       }
 
@@ -211,7 +192,7 @@ const App = () => {
 
     } catch (err) {
       console.error("Error al consultar la función:", err);
-      setError(`Error generando estrategia: ${err.message || 'Verifica tu conexión'}`);
+      setError(`${t.aiDemo.generatingErrorPrefix}: ${err.message || t.aiDemo.connectionFallback}`);
     } finally {
       setIsLoading(false);
     }
@@ -236,7 +217,7 @@ const App = () => {
                 </div>
                 <div>
                   <h3 className="text-2xl font-medium text-gray-900">{selectedService.title}</h3>
-                  <p className="text-sm text-gray-500 font-mono mt-1">Stack: {selectedService.techStack}</p>
+                  <p className="text-sm text-gray-500 font-mono mt-1">{t.services.modalStack} {selectedService.techStack}</p>
                 </div>
               </div>
               <button 
@@ -256,7 +237,7 @@ const App = () => {
               <div>
                 <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-blue-600" />
-                  Qué incluye este servicio:
+                  {t.services.modalIncludes}
                 </h4>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {selectedService.features.map((feature, idx) => (
@@ -274,7 +255,7 @@ const App = () => {
                   onClick={() => setSelectedService(null)}
                   className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
                 >
-                  Consultar por esto <ArrowRight size={16} />
+                  {t.services.modalCta} <ArrowRight size={16} />
                 </a>
               </div>
             </div>
@@ -295,22 +276,38 @@ const App = () => {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex space-x-8 items-center">
-              <a href="#servicios" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Servicios</a>
+              <a href="#servicios" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">{t.nav.services}</a>
               <a href="#market-hub" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-1">
-                <Target size={14} className="text-blue-500" /> Market Hub
+                <Target size={14} className="text-blue-500" /> {t.nav.marketHub}
               </a>
               <a href="#demo-ia" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-1">
-                <Sparkles size={14} className="text-blue-500" /> Demo IA
+                <Sparkles size={14} className="text-blue-500" /> {t.nav.aiDemo}
               </a>
-              <a href="#enfoque" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">Enfoque</a>
+              <a href="#enfoque" className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">{t.nav.approach}</a>
+              <button
+                onClick={toggleLanguage}
+                aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors border border-gray-200 rounded-full px-3 py-1.5 hover:border-gray-300"
+              >
+                <Globe size={14} />
+                {language === 'es' ? 'EN' : 'ES'}
+              </button>
               <a href="#contacto" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full font-medium text-sm transition-all shadow-sm hover:shadow-md">
-                Contactar
+                {t.nav.contact}
               </a>
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'} className="text-gray-600 p-2">
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={toggleLanguage}
+                aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+                className="flex items-center gap-1 text-gray-600 border border-gray-200 rounded-full px-2.5 py-1.5 text-xs font-medium"
+              >
+                <Globe size={13} />
+                {language === 'es' ? 'EN' : 'ES'}
+              </button>
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? t.nav.closeMenu : t.nav.openMenu} className="text-gray-600 p-2">
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
@@ -320,15 +317,15 @@ const App = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-white border-b border-gray-100 absolute w-full px-4 py-4 flex flex-col space-y-4 shadow-lg animate-in slide-in-from-top-5">
-            <a href="#servicios" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Servicios</a>
+            <a href="#servicios" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>{t.nav.services}</a>
             <a href="#market-hub" className="text-gray-600 font-medium flex items-center gap-2 py-2" onClick={() => setIsMenuOpen(false)}>
-              <Target size={16} className="text-blue-500" /> Market Hub
+              <Target size={16} className="text-blue-500" /> {t.nav.marketHub}
             </a>
             <a href="#demo-ia" className="text-gray-600 font-medium flex items-center gap-2 py-2" onClick={() => setIsMenuOpen(false)}>
-              <Sparkles size={16} className="text-blue-500" /> Demo IA
+              <Sparkles size={16} className="text-blue-500" /> {t.nav.aiDemo}
             </a>
-            <a href="#enfoque" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Enfoque</a>
-            <a href="#contacto" className="text-blue-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Contactar</a>
+            <a href="#enfoque" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>{t.nav.approach}</a>
+            <a href="#contacto" className="text-blue-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>{t.nav.contact}</a>
           </div>
         )}
       </nav>
@@ -339,21 +336,21 @@ const App = () => {
           <div className="lg:w-1/2 space-y-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold uppercase tracking-wider">
               <TrendingUp size={14} />
-              Ciencia de Datos para Negocios
+              {t.hero.badge}
             </div>
             <h1 className="text-5xl lg:text-6xl font-medium tracking-tight text-gray-900 leading-[1.1]">
-              Tus datos son un activo. <br />
-              <span className="text-gray-400">Deja de ignorarlos.</span>
+              {t.hero.titleLine1} <br />
+              <span className="text-gray-400">{t.hero.titleLine2}</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-              Ayudo a empresas sin equipo de datos a extraer, ordenar y explotar su información. Convierte hojas de cálculo infinitas en inteligencia de negocio.
+              {t.hero.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <a href="#contacto" className="inline-flex justify-center items-center px-8 py-3.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                Empezar ahora
+                {t.hero.ctaPrimary}
               </a>
               <a href="#demo-ia" className="inline-flex justify-center items-center px-8 py-3.5 rounded-lg bg-white text-gray-700 border border-gray-200 font-medium hover:bg-gray-50 transition-all gap-2">
-                <Sparkles size={16} className="text-yellow-500" /> Probar Demo IA
+                <Sparkles size={16} className="text-yellow-500" /> {t.hero.ctaSecondary}
               </a>
             </div>
           </div>
@@ -367,7 +364,7 @@ const App = () => {
               {/* IMAGEN DASHBOARD */}
               <img
                 src={dashboardSource}
-                alt="Dashboard Analytics mf.ar"
+                alt={t.hero.dashboardAlt}
                 className="w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
@@ -386,17 +383,17 @@ const App = () => {
             <div className="md:w-1/3 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold uppercase tracking-wider">
                 <Bot size={14} />
-                Potenciado por Gemini AI
+                {t.aiDemo.badge}
               </div>
               <h2 className="text-3xl font-medium text-gray-900">
-                Generador de Estrategia de Datos
+                {t.aiDemo.heading}
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed">
-                ¿No sabes por dónde empezar? Describe tu negocio y tu problema, y nuestra IA generará un plan preliminar de <strong>Scraping</strong>, <strong>Limpieza</strong> y <strong>Valor</strong>.
+                {t.aiDemo.description}
               </p>
               <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-yellow-800 text-sm flex gap-3">
                 <Lightbulb className="flex-shrink-0 mt-0.5" size={18} />
-                <p>Esta es una demostración en vivo. Usamos modelos de lenguaje para analizar tu caso en tiempo real.</p>
+                <p>{t.aiDemo.disclaimer}</p>
               </div>
             </div>
 
@@ -405,7 +402,7 @@ const App = () => {
               <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                   <span className="font-medium text-gray-700 text-sm flex items-center gap-2">
-                    <Sparkles size={14} className="text-purple-500" /> Consultor Virtual mf.ar
+                    <Sparkles size={14} className="text-purple-500" /> {t.aiDemo.cardTitle}
                   </span>
                   <div className="flex gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
@@ -417,24 +414,24 @@ const App = () => {
                   {!aiResult && (
                     <form onSubmit={generateDataStrategy} className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Tu Industria / Rubro</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t.aiDemo.industryLabel}</label>
                         <input
                           type="text"
                           value={industry}
                           onChange={(e) => setIndustry(e.target.value)}
                           className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
-                          placeholder="Ej: Retail de Zapatillas, Logística, Inmobiliaria..."
+                          placeholder={t.aiDemo.industryPlaceholder}
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">¿Qué problema de datos tienes?</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t.aiDemo.problemLabel}</label>
                         <textarea
                           value={problem}
                           onChange={(e) => setProblem(e.target.value)}
                           rows="3"
                           className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
-                          placeholder="Ej: No sé a qué precio vende mi competencia, tengo clientes duplicados..."
+                          placeholder={t.aiDemo.problemPlaceholder}
                           required
                         ></textarea>
                       </div>
@@ -448,11 +445,11 @@ const App = () => {
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="animate-spin" size={20} /> Analizando con Gemini...
+                            <Loader2 className="animate-spin" size={20} /> {t.aiDemo.analyzing}
                           </>
                         ) : (
                           <>
-                            Generar Estrategia con IA ✨
+                            {t.aiDemo.submit}
                           </>
                         )}
                       </button>
@@ -462,7 +459,7 @@ const App = () => {
                   {aiResult && (
                     <div className="animate-fadeIn">
                       <div className="mb-6 pb-6 border-b border-gray-100">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Estrategia Generada para</h3>
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">{t.aiDemo.resultHeading}</h3>
                         <p className="text-gray-900 font-medium">{industry}: {problem}</p>
                       </div>
 
@@ -475,10 +472,10 @@ const App = () => {
                           onClick={() => setAiResult('')}
                           className="text-sm text-gray-500 hover:text-gray-900 font-medium underline"
                         >
-                          Probar otro caso
+                          {t.aiDemo.tryAnother}
                         </button>
                         <a href="#contacto" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                          Implementar esto
+                          {t.aiDemo.implement}
                         </a>
                       </div>
                     </div>
@@ -512,7 +509,7 @@ const App = () => {
                     onClick={() => setSelectedService(service)}
                     className={`text-sm font-medium ${service.colorClass} hover:opacity-80 flex items-center gap-2 outline-none focus:underline`}
                   >
-                    Saber más <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    {t.services.learnMore} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </div>
@@ -533,16 +530,16 @@ const App = () => {
           <div className="max-w-3xl mx-auto text-center mb-20">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 text-xs font-semibold uppercase tracking-wider border border-blue-500/20">
               <Target size={14} />
-              Nuevo Producto
+              {t.marketHub.badge}
             </div>
             <h2 className="text-4xl lg:text-5xl font-medium tracking-tight text-white mt-6 leading-[1.1]">
-              Market Intelligence Hub
+              {t.marketHub.title}
             </h2>
             <p className="text-xl text-gray-300 mt-6 leading-relaxed">
-              Descubre dónde está parada tu marca y cómo vende realmente tu competencia.
+              {t.marketHub.subtitle}
             </p>
             <p className="text-lg text-gray-400 mt-4 leading-relaxed">
-              Elimina las suposiciones. Combinamos analítica predictiva, extracción de datos masivos e Inteligencia Artificial para auditar tu posicionamiento de mercado y diseñar tu estrategia de precios óptima.
+              {t.marketHub.description}
             </p>
           </div>
 
@@ -554,10 +551,10 @@ const App = () => {
                 <span className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
                   <Eye className="w-5 h-5 text-red-400" />
                 </span>
-                El Desafío
+                {t.marketHub.challengeTitle}
               </h3>
               <p className="text-gray-400 leading-relaxed">
-                Tomar decisiones comerciales basándose únicamente en reportes internos, intuiciones del equipo o precios de lista públicos es un riesgo alto. En mercados dinámicos, la competencia no solo publica precios: ejecuta descuentos informales, enfrenta crisis de reputación invisibles en la postventa y absorbe mercado de manera silenciosa.
+                {t.marketHub.challengeText}
               </p>
             </div>
 
@@ -567,19 +564,19 @@ const App = () => {
                 <span className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
                   <ShieldCheck className="w-5 h-5 text-white" />
                 </span>
-                La Solución
+                {t.marketHub.solutionTitle}
               </h3>
               <p className="text-blue-50 leading-relaxed">
-                Centralizamos la información dispersa en la web para darte una ventaja táctica. No te entregamos un mar de datos; te damos la claridad que necesitas para justificar tu próximo movimiento ante el directorio, optimizar márgenes y blindar tu estrategia comercial.
+                {t.marketHub.solutionText}
               </p>
             </div>
           </div>
 
           {/* 2. Los Dos Pilares Estratégicos */}
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h3 className="text-3xl font-medium text-white">Dos pilares estratégicos</h3>
+            <h3 className="text-3xl font-medium text-white">{t.marketHub.pillarsTitle}</h3>
             <p className="text-gray-400 text-lg mt-3">
-              Transformamos la complejidad técnica en dos soluciones de negocio concretas.
+              {t.marketHub.pillarsSubtitle}
             </p>
           </div>
 
@@ -589,25 +586,25 @@ const App = () => {
               <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6">
                 <Gauge className="w-6 h-6 text-purple-400" />
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-300 mb-2">Pilar 1</span>
-              <h4 className="text-2xl font-medium text-white mb-3">Auditoría de Percepción y Salud de Marca</h4>
+              <span className="text-xs font-semibold uppercase tracking-wider text-purple-300 mb-2">{t.marketHub.pillar1.label}</span>
+              <h4 className="text-2xl font-medium text-white mb-3">{t.marketHub.pillar1.title}</h4>
               <p className="text-gray-400 leading-relaxed mb-6">
-                Entiende qué atributos asocia el mercado a tus productos en comparación con tus competidores directos.
+                {t.marketHub.pillar1.intro}
               </p>
               <div className="space-y-5 mt-auto">
                 <div>
-                  <p className="text-sm font-semibold text-white mb-1">Qué resolvemos</p>
-                  <p className="text-sm text-gray-400 leading-relaxed">Identificamos los "momentos de la verdad", como la experiencia real en la red de distribución o la postventa.</p>
+                  <p className="text-sm font-semibold text-white mb-1">{t.marketHub.whatWeSolve}</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{t.marketHub.pillar1.solve}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white mb-1">Cómo te ayuda</p>
-                  <p className="text-sm text-gray-400 leading-relaxed">Sabrás con precisión matemática si tu marca se asocia a "innovación", "fidelidad" o si arrastra fricciones críticas (por ejemplo, disconformidad con los planes de financiación o falta de stock).</p>
+                  <p className="text-sm font-semibold text-white mb-1">{t.marketHub.howItHelps}</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{t.marketHub.pillar1.help}</p>
                 </div>
                 <div className="pt-4 border-t border-white/10">
                   <p className="text-sm font-semibold text-blue-300 mb-1 flex items-center gap-2">
-                    <CheckCircle2 size={16} /> El resultado
+                    <CheckCircle2 size={16} /> {t.marketHub.theResult}
                   </p>
-                  <p className="text-sm text-gray-300 leading-relaxed">Argumentos sólidos para corregir la comunicación de marketing, mejorar la retención de clientes y liderar el mercado.</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">{t.marketHub.pillar1.result}</p>
                 </div>
               </div>
             </div>
@@ -617,25 +614,25 @@ const App = () => {
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-6">
                 <Tags className="w-6 h-6 text-green-400" />
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-green-300 mb-2">Pilar 2</span>
-              <h4 className="text-2xl font-medium text-white mb-3">Arquitectura y Posicionamiento de Precios</h4>
+              <span className="text-xs font-semibold uppercase tracking-wider text-green-300 mb-2">{t.marketHub.pillar2.label}</span>
+              <h4 className="text-2xl font-medium text-white mb-3">{t.marketHub.pillar2.title}</h4>
               <p className="text-gray-400 leading-relaxed mb-6">
-                El precio de lista es solo una declaración de intenciones. Analizamos la brecha real entre el precio publicado y el precio de transacción (Price Ladder Real).
+                {t.marketHub.pillar2.intro}
               </p>
               <div className="space-y-5 mt-auto">
                 <div>
-                  <p className="text-sm font-semibold text-white mb-1">Qué resolvemos</p>
-                  <p className="text-sm text-gray-400 leading-relaxed">Mapeamos de extremo a extremo la escalera de precios de tu industria y detectamos promociones agresivas o descuentos informales que pueden distorsionar el mercado.</p>
+                  <p className="text-sm font-semibold text-white mb-1">{t.marketHub.whatWeSolve}</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{t.marketHub.pillar2.solve}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white mb-1">Cómo te ayuda</p>
-                  <p className="text-sm text-gray-400 leading-relaxed">Gestiona tus políticas de promociones con datos reales, define el posicionamiento óptimo para el lanzamiento de nuevos productos y encuentra "huecos" de rentabilidad desatendidos por la competencia.</p>
+                  <p className="text-sm font-semibold text-white mb-1">{t.marketHub.howItHelps}</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{t.marketHub.pillar2.help}</p>
                 </div>
                 <div className="pt-4 border-t border-white/10">
                   <p className="text-sm font-semibold text-blue-300 mb-1 flex items-center gap-2">
-                    <CheckCircle2 size={16} /> El resultado
+                    <CheckCircle2 size={16} /> {t.marketHub.theResult}
                   </p>
-                  <p className="text-sm text-gray-300 leading-relaxed">Certeza absoluta para defender el valor de tu producto, maximizar el margen operativo y evitar perder competitividad por subestimar las tácticas del rival.</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">{t.marketHub.pillar2.result}</p>
                 </div>
               </div>
             </div>
@@ -643,33 +640,17 @@ const App = () => {
 
           {/* 3. ¿Qué estás adquiriendo? */}
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h3 className="text-3xl font-medium text-white">¿Qué estás adquiriendo?</h3>
+            <h3 className="text-3xl font-medium text-white">{t.marketHub.acquiringTitle}</h3>
             <p className="text-gray-400 text-lg mt-3">
-              Un proyecto cerrado, llave en mano. Nos encargamos de todo el proceso de punta a punta: desde el desarrollo técnico de extracción de datos hasta los operativos de mystery shopping si el canal lo requiere.
+              {t.marketHub.acquiringSubtitle}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                icon: <ClipboardCheck className="w-6 h-6 text-blue-400" />,
-                title: "Auditoría de Mercado inicial",
-                desc: "Un diagnóstico profundo y asertivo con conclusiones de negocio listas para presentar ante la dirección."
-              },
-              {
-                icon: <LayoutDashboard className="w-6 h-6 text-blue-400" />,
-                title: "Tablero de Comando",
-                desc: "Un entorno limpio y visual para monitorear el comportamiento de tus competidores, la evolución de los precios de transacción y el termómetro de opinión de los usuarios."
-              },
-              {
-                icon: <Cpu className="w-6 h-6 text-blue-400" />,
-                title: "Escalabilidad Asegurada",
-                desc: "Arquitectura AI-First: la ingesta y clasificación de datos se procesa con modelos avanzados de IA, transformando el diagnóstico inicial en un monitoreo continuo y automatizado."
-              }
-            ].map((item, i) => (
+            {t.marketHub.deliverables.map((item, i) => (
               <div key={i} className="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6">
-                  {item.icon}
+                  {DELIVERABLE_ICONS[i]}
                 </div>
                 <h4 className="text-lg font-medium text-white mb-3">{item.title}</h4>
                 <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
@@ -683,7 +664,7 @@ const App = () => {
               href="#contacto"
               className="inline-flex justify-center items-center px-8 py-3.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 gap-2"
             >
-              Solicitar una auditoría de mercado <ArrowRight size={18} />
+              {t.marketHub.cta} <ArrowRight size={18} />
             </a>
           </div>
 
@@ -694,9 +675,9 @@ const App = () => {
       <section className="py-20 bg-gray-50" id="enfoque">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-medium text-gray-900 mb-4">El puente entre tus datos y tus decisiones</h2>
+            <h2 className="text-3xl font-medium text-gray-900 mb-4">{t.approach.heading}</h2>
             <p className="text-gray-600 text-lg">
-              Muchas empresas tienen datos ("data rich") pero poca información ("insight poor"). Mi trabajo es cerrar esa brecha.
+              {t.approach.subtitle}
             </p>
           </div>
 
@@ -706,14 +687,9 @@ const App = () => {
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <FileSpreadsheet size={100} />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 mb-4">La realidad actual</h3>
+              <h3 className="text-xl font-medium text-gray-900 mb-4">{t.approach.beforeTitle}</h3>
               <ul className="space-y-4">
-                {[
-                  "Excel pesados que tardan minutos en abrir.",
-                  "Información duplicada en diferentes sistemas.",
-                  "Datos manuales propensos a error humano.",
-                  "Imposibilidad de ver la 'foto completa'."
-                ].map((item, i) => (
+                {t.approach.beforeItems.map((item, i) => (
                   <li key={i} className="flex items-start gap-3 text-gray-600">
                     <span className="text-red-400 mt-1">✕</span>
                     {item}
@@ -727,14 +703,9 @@ const App = () => {
               <div className="absolute top-0 right-0 p-4 opacity-10 text-white">
                 <Database size={100} />
               </div>
-              <h3 className="text-xl font-medium text-white mb-4">Con mf.ar</h3>
+              <h3 className="text-xl font-medium text-white mb-4">{t.approach.afterTitle}</h3>
               <ul className="space-y-4">
-                {[
-                  "Dashboards actualizados automáticamente.",
-                  "Fuentes de datos unificadas y limpias.",
-                  "Alertas tempranas de tendencias.",
-                  "Activos de datos listos para escalar."
-                ].map((item, i) => (
+                {t.approach.afterItems.map((item, i) => (
                   <li key={i} className="flex items-start gap-3 text-blue-100">
                     <CheckCircle2 className="mt-1 w-5 h-5 flex-shrink-0 text-white" />
                     {item}
@@ -751,20 +722,20 @@ const App = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-medium text-gray-900 mb-6">
-              ¿Listo para ordenar tus datos?
+              {t.contact.heading}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              No necesitas un departamento de TI masivo. Comencemos con un proyecto piloto para demostrar el valor oculto en tu información.
+              {t.contact.subtitle}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
-            
+
             {/* Left Column: Contact Info */}
             <div className="space-y-8">
               <div className="bg-blue-50 rounded-2xl p-8 border border-blue-100">
                 <h3 className="text-xl font-medium text-gray-900 mb-6 flex items-center gap-2">
-                  <User className="text-blue-600" /> Información de Contacto
+                  <User className="text-blue-600" /> {t.contact.infoTitle}
                 </h3>
                 
                 <div className="space-y-6">
@@ -774,8 +745,8 @@ const App = () => {
                       <User size={20} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Consultor Principal</p>
-                      <p className="text-lg text-gray-900 font-medium">Marcos Ferrario</p>
+                      <p className="text-sm text-gray-500 font-medium">{t.contact.leadConsultant}</p>
+                      <p className="text-lg text-gray-900 font-medium">{t.contact.consultantName}</p>
                     </div>
                   </div>
 
@@ -785,7 +756,7 @@ const App = () => {
                       <Phone size={20} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">WhatsApp / Móvil</p>
+                      <p className="text-sm text-gray-500 font-medium">{t.contact.whatsapp}</p>
                       <a href="https://wa.me/5492215118788" target="_blank" rel="noopener noreferrer" className="text-lg text-gray-900 font-medium hover:text-blue-600 transition-colors">
                         (+54 9) 221 511 8788
                       </a>
@@ -798,7 +769,7 @@ const App = () => {
                       <Mail size={20} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Email</p>
+                      <p className="text-sm text-gray-500 font-medium">{t.contact.email}</p>
                       <a href="mailto:marcos@mf.ar" className="text-lg text-gray-900 font-medium hover:text-blue-600 transition-colors">
                         marcos@mf.ar
                       </a>
@@ -811,7 +782,7 @@ const App = () => {
                       <Linkedin size={20} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Redes Profesionales</p>
+                      <p className="text-sm text-gray-500 font-medium">{t.contact.professionalNetworks}</p>
                       <a href="https://www.linkedin.com/in/marcosferrario/" target="_blank" rel="noopener noreferrer" className="text-lg text-gray-900 font-medium hover:text-blue-600 transition-colors">
                         /in/marcosferrario
                       </a>
@@ -822,19 +793,19 @@ const App = () => {
 
               <div className="p-6 rounded-2xl border border-gray-100 bg-gray-50">
                 <p className="text-gray-600 text-sm italic">
-                  "Los datos son el nuevo petróleo, pero si no se refinan, no pueden usarse. Déjame ayudarte a refinar los tuyos."
+                  {t.contact.quote}
                 </p>
               </div>
             </div>
 
             {/* Right Column: Form */}
             <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-              <h3 className="text-xl font-medium text-gray-900 mb-6">Envíame un mensaje</h3>
+              <h3 className="text-xl font-medium text-gray-900 mb-6">{t.contact.formTitle}</h3>
               <form ref={formRef} onSubmit={sendEmail} className="space-y-6">
                 {/* Honeypot anti-spam: oculto para humanos, invisible en la UI. No lo completes. */}
                 <div className="absolute left-[-9999px] top-[-9999px] w-px h-px overflow-hidden" aria-hidden="true">
                   <label>
-                    No completar este campo
+                    {t.contact.honeypotLabel}
                     <input
                       type="text"
                       name="company_website"
@@ -844,37 +815,37 @@ const App = () => {
                   </label>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
-                  <input 
-                    type="text" 
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.nameLabel}</label>
+                  <input
+                    type="text"
                     name="user_name" // Importante: debe coincidir con tu template de EmailJS
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
-                    placeholder="Juan Pérez" 
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                    placeholder={t.contact.namePlaceholder}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Corporativo</label>
-                  <input 
-                    type="email" 
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.emailLabel}</label>
+                  <input
+                    type="email"
                     name="user_email" // Importante: debe coincidir con tu template de EmailJS
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
-                    placeholder="juan@empresa.com" 
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                    placeholder={t.contact.emailPlaceholder}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">¿Cuál es tu principal desafío?</label>
-                  <textarea 
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.contact.challengeLabel}</label>
+                  <textarea
                     name="message" // Importante: debe coincidir con tu template de EmailJS
-                    rows="4" 
+                    rows="4"
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" 
-                    placeholder="Describe brevemente qué datos necesitas o qué problema quieres resolver..."
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                    placeholder={t.contact.challengePlaceholder}
                   ></textarea>
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   disabled={contactStatus === 'sending' || contactStatus === 'success'}
                   className={`w-full font-medium py-3.5 rounded-lg transition-colors shadow-sm flex justify-center items-center gap-2
@@ -883,25 +854,25 @@ const App = () => {
                   `}
                 >
                   {contactStatus === 'sending' ? (
-                    <>Enviando... <Loader2 className="animate-spin" size={20} /></>
+                    <>{t.contact.sending} <Loader2 className="animate-spin" size={20} /></>
                   ) : contactStatus === 'success' ? (
-                    <>¡Mensaje Enviado! <CheckCircle2 size={20} /></>
+                    <>{t.contact.sent} <CheckCircle2 size={20} /></>
                   ) : contactStatus === 'error' ? (
-                    <>Error al enviar. Intenta de nuevo.</>
+                    <>{t.contact.sendError}</>
                   ) : (
-                    <>Enviar consulta <ArrowRight size={18} /></>
+                    <>{t.contact.submit} <ArrowRight size={18} /></>
                   )}
                 </button>
-                
+
                 {/* Mensaje de éxito/error debajo del botón */}
                 {contactStatus === 'success' && (
                   <p className="text-center text-sm text-green-600 mt-2 animate-in fade-in">
-                    Gracias por contactarnos. Te responderemos a la brevedad.
+                    {t.contact.successMessage}
                   </p>
                 )}
               </form>
               <p className="mt-6 text-xs text-center text-gray-400">
-                Consultoría directa. Respuesta garantizada en 24hs.
+                {t.contact.footerNote}
               </p>
             </div>
 
@@ -917,10 +888,10 @@ const App = () => {
               mf.ar
             </span>
             <span className="text-gray-300">|</span>
-            <span className="text-sm text-gray-500">Data Science & Analytics</span>
+            <span className="text-sm text-gray-500">{t.footer.tagline}</span>
           </div>
           <div className="text-sm text-gray-400">
-            © {new Date().getFullYear()} mf.ar. Todos los derechos reservados.
+            © {new Date().getFullYear()} mf.ar. {t.footer.rights}
           </div>
         </div>
       </footer>
